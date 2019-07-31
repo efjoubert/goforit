@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"../goio"
+	"github.com/efjoubert/goforit/goio"
 )
 
 //RequestResponseMethodHandle RequestResponseMethodHandle

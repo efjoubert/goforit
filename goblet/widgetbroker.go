@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"../godbc"
-	"../goio"
+	"github.com/efjoubert/goforit/godbc"
+	"github.com/efjoubert/goforit/goio"
 )
 
 //WidgetBroker WidgetBroker

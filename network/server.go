@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"../goblet"
+	"github.com/efjoubert/goforit/goblet"
 )
 
 //Server conveniance struct wrapping arround *http.Server

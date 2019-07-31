@@ -7,7 +7,7 @@ import (
 
 	goja "github.com/dop251/goja"
 
-	"../goio"
+	"github.com/efjoubert/goforit/goio"
 )
 
 func serverActiveContent(r io.Reader, active bool, a ...interface{}) (atvr io.Reader, err error) {

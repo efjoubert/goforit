@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"../goio"
+	"github.com/efjoubert/goforit/goio"
 
 	//listed drivers
 	_ "github.com/denisenkom/go-mssqldb"

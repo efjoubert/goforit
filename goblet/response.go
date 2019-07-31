@@ -3,7 +3,7 @@ package goblet
 import (
 	"net/http"
 
-	"../goio"
+	"github.com/efjoubert/goforit/goio"
 )
 
 //Response Response

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"../goio"
+	"github.com/efjoubert/goforit/goio"
 )
 
 //Widget Widget

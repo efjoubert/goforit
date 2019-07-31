@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"../goio"
+	"github.com/efjoubert/goforit/goio"
 )
 
 func searchMimeTypeByExt(ext string, defaultMimeType string, atvext ...string) (mimeType string, activeExt bool) {
