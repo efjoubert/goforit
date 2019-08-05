@@ -15,10 +15,10 @@ type Job struct {
 	jblck     *sync.Mutex
 }
 
-//ScheduleJob - invoke new Schedulable(Job)
-//label - job label
-//interval - interval in nano seconds
-//callfunc - (optional) ...interface{} list of functions that will be actioned
+//ScheduleJob - invoke new Schedulable(Job) <br/>
+//label - job label</br>
+//interval - interval in nano seconds<br/>
+//callfunc - (optional) ...interface{} list of functions that will be actioned <br/>
 func ScheduleJob(label string, interval time.Duration, callfunc ...interface{}) (jb *Job) {
 	jb = &Job{jblck: &sync.Mutex{}, lbl: label, done: make(chan bool), callfuncs: callfunc[:], intrvl: interval}
 	return
