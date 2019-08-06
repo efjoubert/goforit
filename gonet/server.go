@@ -1,4 +1,4 @@
-package network
+package gonet
 
 import (
 	"net/http"
