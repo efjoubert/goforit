@@ -28,8 +28,9 @@ func initDataAgentWidget() {
 		"/bootstrap/js/bootstrap.js", embed.BootstrapJS,
 		"/datatables/js/datatables.js", embed.DatatableJS,
 		"/datatables/css/datatables.css", embed.DatatableCSS,
-		"/hcoffcanvas/css/hcoffcanvas.css", embed.HCOffCanvasCSS,
-		"/hcoffcanvas/js/hcoffcanvas.js", embed.HCOffCanvasJS,
+		"/hcoffcanvas/css/hcoffcanvas.css", embed.HCOffCanvasNavCSS,
+		"/hcoffcanvas/js/hcoffcanvas.js", embed.HCOffCanvasNavJS,
+		"/hcsticky/js/hcsticky.js", embed.HCStickyJS,
 		"/mmenu/css/mmenu.css", func() io.Reader { return embed.MMenuCSS(true) },
 		"/mmenu/js/mmenu.js", func() io.Reader { return embed.MMenuJS(true) })
 
