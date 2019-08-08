@@ -25,7 +25,9 @@ func initDataAgentWidget() {
 		"/blockui.js", embed.BlockuiJS,
 		"/webactions.js", func() io.Reader { return embed.WebactionsJS(true) },
 		"/bootstrap/css/bootstrap.css", embed.BootstrapCSS,
-		"/bootstrap/js/bootstrap.js")
+		"/bootstrap/js/bootstrap.js", embed.BootstrapJS,
+		"/datatables/js/datatables.js", embed.DatatableJS,
+		"/datatables/css/datatables.css", embed.DatatableCSS)
 	goblet.RegisterServletContextPath("/", "./data").RegisterServlet("/", nil)
 	goblet.RegisterWidgetPath("/data", "agent.html", newDataAgentWidget)
 }
