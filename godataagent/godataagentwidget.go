@@ -27,7 +27,10 @@ func initDataAgentWidget() {
 		"/bootstrap/css/bootstrap.css", embed.BootstrapCSS,
 		"/bootstrap/js/bootstrap.js", embed.BootstrapJS,
 		"/datatables/js/datatables.js", embed.DatatableJS,
-		"/datatables/css/datatables.css", embed.DatatableCSS)
+		"/datatables/css/datatables.css", embed.DatatableCSS,
+		"/mmenu/css/mmenu.css", func() io.Reader { return embed.MMenuCSS(true) },
+		"/mmenu/js/mmenu.js", func() io.Reader { return embed.MMenuJS(true) })
+
 	goblet.RegisterServletContextPath("/", "./data").RegisterServlet("/", nil)
 	goblet.RegisterWidgetPath("/data", "agent.html", newDataAgentWidget)
 }
