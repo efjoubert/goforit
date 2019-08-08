@@ -35,9 +35,13 @@ func initDataAgentWidget() {
 const dataagentwidgethtml string = `<!doctype html>
 <html>
 <head>
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+<link rel="stylesheet" href="/datatables/css/datatables.css">
 <script type="text/javascript" src="/jquery.js"></script>
 <script type="text/javascript" src="/blockui.js"></script>
 <script type="text/javascript" src="/webactions.js"></script>
+<script type="text/javascript" src="/boootstrap/js/bootstrap.js"></script>
+<script type="text/javascript" src="/datatables/js/datatables.js"></script>
 </head>
 <body><span>DATA AGENT</span>
 <body></html>`
