@@ -13,7 +13,7 @@ func StartElem(out goio.Printer, elemName string, props ...interface{}) {
 	out.Print(">")
 }
 
-//PrintPropeties PrintProperties
+//PrintProperties PrintProperties
 func PrintProperties(out goio.Printer, parenthasis string, props ...interface{}) {
 	if len(props) > 0 {
 		var ouputProp = func(pname string, pvalue string) {
