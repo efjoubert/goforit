@@ -16,7 +16,7 @@ func StartElem(out goio.Printer, elemName string, props ...interface{}) {
 //PrintPropeties PrintProperties
 func PrintProperties(out goio.Printer, parenthasis string, props ...interface{}) {
 	if len(props) > 0 {
-		var ouputProp func(string, string) = func(pname string, pvalue string) {
+		var ouputProp = func(pname string, pvalue string) {
 			out.Print(" ", pname, "=", parenthasis, pvalue, parenthasis)
 		}
 		for _, prop := range props {
