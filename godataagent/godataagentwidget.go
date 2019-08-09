@@ -31,7 +31,7 @@ func initDataAgentWidget() {
 		"/hcoffcanvas/css/hcoffcanvas.css", embed.HCOffCanvasNavCSS,
 		"/hcoffcanvas/js/hcoffcanvas.js", embed.HCOffCanvasNavJS,
 		"/hcsticky/js/hcsticky.js", embed.HCStickyJS,
-		"/knockout/knockout.js",emded.KnockoutJS,
+		"/knockout/knockout.js", embed.KnockoutJS,
 		"/mmenu/css/mmenu.css", func() io.Reader { return embed.MMenuCSS(true) },
 		"/mmenu/js/mmenu.js", func() io.Reader { return embed.MMenuJS(true) })
 
