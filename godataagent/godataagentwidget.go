@@ -27,6 +27,8 @@ func initDataAgentWidget() {
 		"/webactions.js", func() io.Reader { return embed.WebactionsJS(true) },
 		"/bootstrap/css/bootstrap.css", embed.BootstrapCSS,
 		"/bootstrap/js/bootstrap.js", embed.BootstrapJS,
+		"/bootstrapdatetime/css/bootstrapdatetime.css", embed.BootstrapDatetimeCSS,
+		"/bootstrapdatetime/js/bootstrapdatetime.js", embed.BootstrapDatetimeJS,
 		"/datatables/js/datatables.js", embed.DatatableJS,
 		"/datatables/css/datatables.css", embed.DatatableCSS,
 		"/hcoffcanvas/css/hcoffcanvas.css", embed.HCOffCanvasNavCSS,
