@@ -17,6 +17,7 @@ func serverActiveContent(r io.Reader, active bool, a ...interface{}) (atvr io.Re
 		var pwio, _ = goio.NewIORW(pw)
 		var unpio, _ = goio.NewIORW()
 		var atvElems = map[string]interface{}{}
+		var orgrio, _ = goio.NewIORW(r)
 		for len(a) > 0 && len(a)%2 == 0 {
 			if s, sok := a[0].(string); sok && a[1] != nil {
 				atvElems[s] = a[1]
@@ -25,7 +26,7 @@ func serverActiveContent(r io.Reader, active bool, a ...interface{}) (atvr io.Re
 				break
 			}
 		}
-		var atvrf = &ActiveReader{orgr: r, pr: pr, pw: pw, pwio: pwio, isatv: active, prvb: []byte{0, 0}, lblbytes: [][]byte{([]byte)("<@"), ([]byte)("@>"), ([]byte)("<"), ([]byte)(">")}, lbli: []int{0, 0, 0, 0}, unpio: unpio, cntntstarti: -1, atvElems: atvElems, atvinterupt: make(chan bool, 1)}
+		var atvrf = &ActiveReader{orgr: r, orgrio: orgrio, pr: pr, pw: pw, pwio: pwio, isatv: active, prvb: []byte{0, 0}, lblbytes: [][]byte{([]byte)("<@"), ([]byte)("@>"), ([]byte)("<"), ([]byte)(">")}, lbli: []int{0, 0, 0, 0}, unpio: unpio, cntntstarti: -1, atvElems: atvElems, atvinterupt: make(chan bool, 1), atvpsvmde: mdeatv}
 		go func() {
 			err = readActiveContent(atvrf)
 		}()
@@ -40,12 +41,22 @@ func serverActiveContent(r io.Reader, active bool, a ...interface{}) (atvr io.Re
 	return
 }
 
+type modeactivepassive int
+
+const (
+	mdeatv modeactivepassive = iota
+	mdepsv
+	mdepsvsngl
+	mdepsvcmplx
+)
+
 //ActiveReader ActiveReader
 type ActiveReader struct {
 	pr          *io.PipeReader
 	pw          *io.PipeWriter
 	pwio        *goio.IORW
 	orgr        io.Reader
+	orgrio      *goio.IORW
 	isatv       bool
 	prvb        []byte
 	lblbytes    [][]byte
@@ -60,6 +71,7 @@ type ActiveReader struct {
 	hasContent  bool
 	atvElems    map[string]interface{}
 	atvinterupt chan bool
+	atvpsvmde   modeactivepassive
 }
 
 func (atvr *ActiveReader) interuptReader() {
@@ -86,6 +98,10 @@ func (atvr *ActiveReader) Close() (err error) {
 		atvr.orgr = nil
 	}
 	if atvr.isatv {
+		if atvr.orgrio != nil {
+			atvr.orgrio.Close()
+			atvr.orgrio = nil
+		}
 		if atvr.pr != nil {
 			atvr.pr.Close()
 		}
@@ -144,6 +160,14 @@ func (atvr *ActiveReader) Close() (err error) {
 	return
 }
 
+func readNextByte(atvr *ActiveReader, p []byte) (n int, err error) {
+	switch atvr.atvpsvmde {
+	case mdeatv:
+		n, err = atvr.orgrio.Read(p)
+	}
+	return
+}
+
 func readActiveContent(atvr *ActiveReader) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -154,7 +178,7 @@ func readActiveContent(atvr *ActiveReader) (err error) {
 			}
 		}
 	}()
-	var p = make([]byte, 4096)
+	var p = make([]byte, 1)
 	defer atvr.pw.Close()
 	var interupted = false
 	for {
@@ -248,7 +272,7 @@ func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [
 	if lbli[1] == 0 && lbli[0] < len(lblbytes[0]) {
 		if lbli[0] > 0 && lblbytes[0][lbli[0]-1] == atvr.prvb[0] && lblbytes[0][lbli[0]] != b[0] {
 			for n := range lblbytes[0][0:lbli[0]] {
-				inturpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n+1], lblbytes, lbli)
+				interpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n+1], lblbytes, lbli)
 			}
 			lbli[0] = 0
 			atvr.prvb[0] = 0
@@ -262,30 +286,32 @@ func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [
 						atvr.unpio.Close()
 					}
 				}
+				atvr.atvpsvmde = mdeatv
+				atvr.prvb[0] = 0
 			} else {
 				atvr.prvb[0] = b[0]
 			}
 		} else {
 			if lbli[0] > 0 {
 				for n := range lblbytes[0][0:lbli[0]] {
-					inturpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n+1], lblbytes, lbli)
+					interpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n+1], lblbytes, lbli)
 				}
 				lbli[0] = 0
 			}
 			atvr.prvb[0] = b[0]
-			inturpratePassiveReaderByte(atvr, wo, b, lblbytes, lbli)
+			interpratePassiveReaderByte(atvr, wo, b, lblbytes, lbli)
 		}
 	} else if lbli[0] == len(lblbytes[0]) && lbli[1] < len(lblbytes[1]) {
 		if lblbytes[1][lbli[1]] == b[0] {
 			lbli[1]++
 			if lbli[1] == len(lblbytes[1]) {
-
 				lbli[0] = 0
 				lbli[1] = 0
 				if atvr.hasCode && !atvr.foundcode {
 					atvr.foundcode = true
 				}
 				atvr.hasCode = false
+				atvr.atvpsvmde = mdepsv
 			}
 		} else {
 			if lbli[1] > 0 {
@@ -327,7 +353,7 @@ func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [
 	}
 }
 
-func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [][]byte, lbli []int) {
+func interpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [][]byte, lbli []int) {
 	if lbli[3] == 0 && lbli[2] < len(lblbytes[2]) {
 		if lbli[2] > 0 && lblbytes[2][lbli[2]-1] == atvr.prvb[1] && lblbytes[2][lbli[2]] != b[0] {
 			atvr.unpio.Print(lblbytes[2][0:lbli[2]])
@@ -518,8 +544,6 @@ func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) {
 	var valid = false
 	if atvr.unvlio != nil && !atvr.unvlio.Empty() {
 		if valid = atvr.unvlio.HasPrefixExp(regexptagstart); valid {
-			fmt.Println(atvr.unvlio)
-		} else {
 			fmt.Println(atvr.unvlio)
 		}
 	}
