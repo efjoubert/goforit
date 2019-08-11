@@ -326,9 +326,9 @@ func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [
 }
 
 func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [][]byte, lbli []int) {
-	if lbli[4] == 0 && lbli[3] < len(lblbytes[3]) {
-		if lbli[3] > 0 && lblbytes[3][lbli[3]-1] == atvr.prvb[1] && lblbytes[3][lbli[3]] != b[0] {
-			atvr.unpio.Print(lblbytes[3][0:lbli[3]])
+	if lbli[3] == 0 && lbli[2] < len(lblbytes[2]) {
+		if lbli[2] > 0 && lblbytes[2][lbli[2]-1] == atvr.prvb[1] && lblbytes[2][lbli[2]] != b[0] {
+			atvr.unpio.Print(lblbytes[2][0:lbli[2]])
 			if !atvr.foundcode {
 				if atvr.unpio.Size() >= 4096 {
 					atvr.pwio.Print(atvr.unpio)
@@ -343,12 +343,12 @@ func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 					}
 				}
 			}
-			lbli[3] = 0
+			lbli[2] = 0
 			atvr.prvb[1] = 0
 		}
-		if lblbytes[3][lbli[3]] == b[0] {
-			lbli[3]++
-			if lbli[3] == len(lblbytes[3]) {
+		if lblbytes[2][lbli[2]] == b[0] {
+			lbli[2]++
+			if lbli[2] == len(lblbytes[2]) {
 				if atvr.unpio.Size() > 0 {
 					if !atvr.foundcode {
 						if atvr.unpio.Size() >= 4096 {
@@ -370,7 +370,7 @@ func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 				atvr.prvb[1] = b[0]
 			}
 		} else {
-			if lbli[3] > 0 {
+			if lbli[2] > 0 {
 				atvr.unpio.Print(lblbytes[0][0:lbli[0]])
 				if !atvr.foundcode {
 					if atvr.unpio.Size() >= 4096 {
@@ -386,7 +386,7 @@ func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 						}
 					}
 				}
-				lbli[3] = 0
+				lbli[2] = 0
 			}
 			atvr.prvb[1] = b[0]
 			atvr.unpio.Print(b)
@@ -405,10 +405,10 @@ func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 				}
 			}
 		}
-	} else if lbli[3] == len(lblbytes[3]) && lbli[4] < len(lblbytes[4]) {
-		if lblbytes[4][lbli[4]] == b[0] {
-			lbli[4]++
-			if lbli[4] == len(lblbytes[4]) {
+	} else if lbli[2] == len(lblbytes[2]) && lbli[3] < len(lblbytes[3]) {
+		if lblbytes[3][lbli[3]] == b[0] {
+			lbli[3]++
+			if lbli[3] == len(lblbytes[3]) {
 				if validPassiveConnent(atvr, lblbytes, lbli) {
 
 				}
@@ -418,9 +418,9 @@ func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 			if atvr.unvlio == nil {
 				atvr.unvlio, _ = goio.NewIORW()
 			}
-			if lbli[4] > 0 {
-				atvr.unvlio.Print(lblbytes[4])
-				lbli[4] = 0
+			if lbli[3] > 0 {
+				atvr.unvlio.Print(lblbytes[3])
+				lbli[3] = 0
 			} else {
 				atvr.unvlio.Print(b)
 			}
@@ -434,17 +434,17 @@ func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) (val
 			atvr.unvlio.Close()
 		}
 	} else {
-		if lbli[3] > 0 {
-			atvr.unpio.Print(lblbytes[3][0:lbli[3]])
-			lbli[3] = 0
+		if lbli[2] > 0 {
+			atvr.unpio.Print(lblbytes[2][0:lbli[2]])
+			lbli[2] = 0
 		}
 		if atvr.unvlio != nil && !atvr.unvlio.Empty() {
 			atvr.unpio.Print(atvr.unvlio)
 			atvr.unvlio.Close()
 		}
-		if lbli[4] > 0 {
-			atvr.unpio.Print(lblbytes[4][0:lbli[4]])
-			lbli[4] = 0
+		if lbli[3] > 0 {
+			atvr.unpio.Print(lblbytes[3][0:lbli[3]])
+			lbli[3] = 0
 		}
 		if atvr.unpio.Size() > 0 {
 			if !atvr.foundcode {
