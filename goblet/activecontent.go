@@ -246,7 +246,7 @@ func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [
 	if lbli[1] == 0 && lbli[0] < len(lblbytes[0]) {
 		if lbli[0] > 0 && lblbytes[0][lbli[0]-1] == atvr.prvb[0] && lblbytes[0][lbli[0]] != b[0] {
 			for n := range lblbytes[0][0:lbli[0]] {
-				inturpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n], lblbytes, lbli)
+				inturpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n+1], lblbytes, lbli)
 			}
 			lbli[0] = 0
 			atvr.prvb[0] = 0
