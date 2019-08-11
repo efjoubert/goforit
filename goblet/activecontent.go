@@ -519,6 +519,8 @@ func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) {
 	if atvr.unvlio != nil && !atvr.unvlio.Empty() {
 		if valid = atvr.unvlio.HasPrefixExp(regexptagstart); valid {
 			fmt.Println(atvr.unvlio)
+		} else {
+			fmt.Println(atvr.unvlio)
 		}
 	}
 	if valid {
