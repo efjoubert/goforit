@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="/bootstrapdatetime/css/bootstrapdatetime.css">
+    <link rel="stylesheet" href="/datatables/css/datatables.css">
+    <link rel="stylesheet" href="/hcoffcanvas/css/hcoffcanvas.css">
+    <script type="text/javascript" src="/jquery.js"></script>
+    <script type="text/javascript" src="/blockui.js"></script>
+    <script type="text/javascript" src="/webactions.js"></script>
+    <script type="text/javascript" src="/boootstrap/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/boootstrapdatetime/js/bootstrapdatetime.js"></script>
+    <script type="text/javascript" src="/datatables/js/datatables.js"></script>
+    <script type="text/javascript" src="/hcoffcanvas/js/hcoffcanvas.js"></script>
+    <title>DATA AGENT</title>
+    <style>.web-action{cursor: pointer}</style>
+</head>
+<body>
+    <nav class="nav-main">
+        <ul class="first-nav">
+            <li><span>DATABASE(s)</span>
+                <ul>
+                    <li><span class="web-action" url_ref="databases/connections.html" target="#container">CONNECTION(s)</span></li>
+                    <li>DATASOURCE(s)</li>
+                </ul>
+            </li>
+            <li><span class="web-action">FILE(s)</span></li>
+        </ul>    
+    </nav>
+<div id="container" style="position: relative; left: 2.0em"></div>
+    <script type="text/javascript">
+        $(function(){
+          var Nav = $(".nav-main").hcOffcanvasNav({
+                maxWidth: false,
+                levelTitles: true,
+                levelOpen:'overlap',
+                position: 'left',
+                //levelSpacing:40,
+                closeLevels: false
+            });
+
+          $(".web-action").click(function(e){
+              e.preventDefault();
+            postByElem(this);
+            Nav.close();
+          });
+        })
+    </script>
+</body>
+</html>

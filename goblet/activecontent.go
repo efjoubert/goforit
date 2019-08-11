@@ -24,7 +24,7 @@ func serverActiveContent(r io.Reader, active bool, a ...interface{}) (atvr io.Re
 				break
 			}
 		}
-		var atvrf = &ActiveReader{orgr: r, pr: pr, pw: pw, pwio: pwio, isatv: active, lblbytes: [][]byte{([]byte)("<@"), ([]byte)("@>")}, lbli: []int{0, 0}, prvb: 0, unpio: unpio, cntntstarti: -1, atvElems: atvElems, atvinterupt: make(chan bool, 1)}
+		var atvrf = &ActiveReader{orgr: r, pr: pr, pw: pw, pwio: pwio, isatv: active, prvb: []byte{0, 0}, lblbytes: [][]byte{([]byte)("<@"), ([]byte)("@>"), ([]byte)("<"), ([]byte)(">")}, lbli: []int{0, 0, 0, 0}, unpio: unpio, cntntstarti: -1, atvElems: atvElems, atvinterupt: make(chan bool, 1)}
 		go func() {
 			err = readActiveContent(atvrf)
 		}()
@@ -46,10 +46,11 @@ type ActiveReader struct {
 	pwio        *goio.IORW
 	orgr        io.Reader
 	isatv       bool
-	prvb        byte
+	prvb        []byte
 	lblbytes    [][]byte
 	lbli        []int
 	unpio       *goio.IORW
+	unvlio      *goio.IORW
 	cdeio       *goio.IORW
 	cntntstarti int64
 	cntntio     *goio.IORW
@@ -103,6 +104,10 @@ func (atvr *ActiveReader) Close() (err error) {
 		if atvr.unpio != nil {
 			atvr.unpio.Close()
 			atvr.unpio = nil
+		}
+		if atvr.unvlio != nil {
+			atvr.unvlio.Close()
+			atvr.unvlio = nil
 		}
 		if atvr.cdeio != nil {
 			atvr.cdeio.Close()
@@ -239,23 +244,12 @@ func (atvr *ActiveReader) FlushContent(cntntstarti int64, cntntendi int64) {
 
 func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [][]byte, lbli []int) {
 	if lbli[1] == 0 && lbli[0] < len(lblbytes[0]) {
-		if lbli[0] > 0 && lblbytes[0][lbli[0]-1] == atvr.prvb && lblbytes[0][lbli[0]] != b[0] {
-			if atvr.cntntstarti == -1 {
-				if atvr.cntntio == nil {
-					atvr.cntntstarti = 0
-				} else {
-					atvr.cntntstarti = atvr.cntntio.Size()
-				}
-			}
-			atvr.unpio.Print(lblbytes[0][0:lbli[0]])
-			if !atvr.foundcode {
-				if atvr.unpio.Size() >= 4096 {
-					atvr.pwio.Print(atvr.unpio)
-					atvr.unpio.Close()
-				}
+		if lbli[0] > 0 && lblbytes[0][lbli[0]-1] == atvr.prvb[0] && lblbytes[0][lbli[0]] != b[0] {
+			for n := range lblbytes[0][0:lbli[0]] {
+				inturpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n], lblbytes, lbli)
 			}
 			lbli[0] = 0
-			atvr.prvb = 0
+			atvr.prvb[0] = 0
 		}
 		if lblbytes[0][lbli[0]] == b[0] {
 			lbli[0]++
@@ -267,34 +261,17 @@ func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [
 					}
 				}
 			} else {
-				atvr.prvb = b[0]
+				atvr.prvb[0] = b[0]
 			}
 		} else {
-			if atvr.cntntstarti == -1 {
-				if atvr.cntntio == nil {
-					atvr.cntntstarti = 0
-				} else {
-					atvr.cntntstarti = atvr.cntntio.Size()
-				}
-			}
 			if lbli[0] > 0 {
-				atvr.unpio.Print(lblbytes[0][0:lbli[0]])
-				if !atvr.foundcode {
-					if atvr.unpio.Size() >= 4096 {
-						atvr.pwio.Print(atvr.unpio)
-						atvr.unpio.Close()
-					}
+				for n := range lblbytes[0][0:lbli[0]] {
+					inturpratePassiveReaderByte(atvr, wo, lblbytes[0][n:n+1], lblbytes, lbli)
 				}
 				lbli[0] = 0
 			}
-			atvr.prvb = b[0]
-			atvr.unpio.Print(b)
-			if !atvr.foundcode {
-				if atvr.unpio.Size() >= 4096 {
-					atvr.pwio.Print(atvr.unpio)
-					atvr.unpio.Close()
-				}
-			}
+			atvr.prvb[0] = b[0]
+			inturpratePassiveReaderByte(atvr, wo, b, lblbytes, lbli)
 		}
 	} else if lbli[0] == len(lblbytes[0]) && lbli[1] < len(lblbytes[1]) {
 		if lblbytes[1][lbli[1]] == b[0] {
@@ -346,4 +323,145 @@ func parseAtiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [
 			}
 		}
 	}
+}
+
+func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lblbytes [][]byte, lbli []int) {
+	if lbli[4] == 0 && lbli[3] < len(lblbytes[3]) {
+		if lbli[3] > 0 && lblbytes[3][lbli[3]-1] == atvr.prvb[1] && lblbytes[3][lbli[3]] != b[0] {
+			atvr.unpio.Print(lblbytes[3][0:lbli[3]])
+			if !atvr.foundcode {
+				if atvr.unpio.Size() >= 4096 {
+					atvr.pwio.Print(atvr.unpio)
+					atvr.unpio.Close()
+				}
+			} else {
+				if atvr.cntntstarti == -1 {
+					if atvr.cntntio == nil {
+						atvr.cntntstarti = 0
+					} else {
+						atvr.cntntstarti = atvr.cntntio.Size()
+					}
+				}
+			}
+			lbli[3] = 0
+			atvr.prvb[1] = 0
+		}
+		if lblbytes[3][lbli[3]] == b[0] {
+			lbli[3]++
+			if lbli[3] == len(lblbytes[3]) {
+				if atvr.unpio.Size() > 0 {
+					if !atvr.foundcode {
+						if atvr.unpio.Size() >= 4096 {
+							atvr.pwio.Print(atvr.unpio)
+							atvr.unpio.Close()
+						}
+					} else {
+						if atvr.cntntstarti == -1 {
+							if atvr.cntntio == nil {
+								atvr.cntntstarti = 0
+							} else {
+								atvr.cntntstarti = atvr.cntntio.Size()
+							}
+						}
+					}
+				}
+				atvr.prvb[1] = 0
+			} else {
+				atvr.prvb[1] = b[0]
+			}
+		} else {
+			if lbli[3] > 0 {
+				atvr.unpio.Print(lblbytes[0][0:lbli[0]])
+				if !atvr.foundcode {
+					if atvr.unpio.Size() >= 4096 {
+						atvr.pwio.Print(atvr.unpio)
+						atvr.unpio.Close()
+					}
+				} else {
+					if atvr.cntntstarti == -1 {
+						if atvr.cntntio == nil {
+							atvr.cntntstarti = 0
+						} else {
+							atvr.cntntstarti = atvr.cntntio.Size()
+						}
+					}
+				}
+				lbli[3] = 0
+			}
+			atvr.prvb[1] = b[0]
+			atvr.unpio.Print(b)
+			if !atvr.foundcode {
+				if atvr.unpio.Size() >= 4096 {
+					atvr.pwio.Print(atvr.unpio)
+					atvr.unpio.Close()
+				}
+			} else {
+				if atvr.cntntstarti == -1 {
+					if atvr.cntntio == nil {
+						atvr.cntntstarti = 0
+					} else {
+						atvr.cntntstarti = atvr.cntntio.Size()
+					}
+				}
+			}
+		}
+	} else if lbli[3] == len(lblbytes[3]) && lbli[4] < len(lblbytes[4]) {
+		if lblbytes[4][lbli[4]] == b[0] {
+			lbli[4]++
+			if lbli[4] == len(lblbytes[4]) {
+				if validPassiveConnent(atvr, lblbytes, lbli) {
+
+				}
+				atvr.prvb[1] = 0
+			}
+		} else {
+			if atvr.unvlio == nil {
+				atvr.unvlio, _ = goio.NewIORW()
+			}
+			if lbli[4] > 0 {
+				atvr.unvlio.Print(lblbytes[4])
+				lbli[4] = 0
+			} else {
+				atvr.unvlio.Print(b)
+			}
+		}
+	}
+}
+
+func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) (valid bool) {
+	if valid {
+		if atvr.unvlio != nil && !atvr.unvlio.Empty() {
+			atvr.unvlio.Close()
+		}
+	} else {
+		if lbli[3] > 0 {
+			atvr.unpio.Print(lblbytes[3][0:lbli[3]])
+			lbli[3] = 0
+		}
+		if atvr.unvlio != nil && !atvr.unvlio.Empty() {
+			atvr.unpio.Print(atvr.unvlio)
+			atvr.unvlio.Close()
+		}
+		if lbli[4] > 0 {
+			atvr.unpio.Print(lblbytes[4][0:lbli[4]])
+			lbli[4] = 0
+		}
+		if atvr.unpio.Size() > 0 {
+			if !atvr.foundcode {
+				if atvr.unpio.Size() >= 4096 {
+					atvr.pwio.Print(atvr.unpio)
+					atvr.unpio.Close()
+				}
+			} else {
+				if atvr.cntntstarti == -1 {
+					if atvr.cntntio == nil {
+						atvr.cntntstarti = 0
+					} else {
+						atvr.cntntstarti = atvr.cntntio.Size()
+					}
+				}
+			}
+		}
+	}
+	return
 }
