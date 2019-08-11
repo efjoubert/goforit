@@ -3,6 +3,7 @@ package goblet
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 
 	goja "github.com/dop251/goja"
@@ -56,6 +57,7 @@ type ActiveReader struct {
 	cntntio     *goio.IORW
 	foundcode   bool
 	hasCode     bool
+	hasContent  bool
 	atvElems    map[string]interface{}
 	atvinterupt chan bool
 }
@@ -409,26 +411,95 @@ func inturpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 		if lblbytes[3][lbli[3]] == b[0] {
 			lbli[3]++
 			if lbli[3] == len(lblbytes[3]) {
-				if validPassiveConnent(atvr, lblbytes, lbli) {
-
+				if atvr.hasContent {
+					atvr.hasContent = false
+					validPassiveConnent(atvr, lblbytes, lbli)
 				}
 				atvr.prvb[1] = 0
 			}
 		} else {
-			if atvr.unvlio == nil {
-				atvr.unvlio, _ = goio.NewIORW()
-			}
 			if lbli[3] > 0 {
-				atvr.unvlio.Print(lblbytes[3])
+				var vlbn = 0
+				for vlbn < lbli[3] {
+					switch {
+					case !atvr.hasContent && strings.TrimSpace(string(lblbytes[3][0:lbli[3]][vlbn:vlbn+1])) != "":
+						atvr.hasContent = true
+						fallthrough
+					case atvr.hasContent && strings.TrimSpace(string(lblbytes[3][0:lbli[3]][vlbn:vlbn+1])) != "":
+						if atvr.unvlio == nil {
+							atvr.unvlio, _ = goio.NewIORW()
+						}
+						atvr.unvlio.Print(lblbytes[3][0:lbli[3]][vlbn : vlbn+1])
+					case atvr.hasContent:
+						atvr.hasContent = false
+						validPassiveConnent(atvr, lblbytes, lbli)
+						vlbn = lbli[3] - 1
+						lbli[2] = 0
+					default:
+						atvr.unpio.Print(lblbytes[3][vlbn:lbli[3]])
+						if !atvr.foundcode {
+							if atvr.unpio.Size() >= 4096 {
+								atvr.pwio.Print(atvr.unpio)
+								atvr.unpio.Close()
+							}
+						} else {
+							if atvr.cntntstarti == -1 {
+								if atvr.cntntio == nil {
+									atvr.cntntstarti = 0
+								} else {
+									atvr.cntntstarti = atvr.cntntio.Size()
+								}
+							}
+						}
+						lbli[2] = 0
+						vlbn = lbli[3] - 1
+					}
+					vlbn++
+				}
 				lbli[3] = 0
-			} else {
+			}
+			switch {
+			case !atvr.hasContent && strings.TrimSpace(string(b[0:1])) != "":
+				atvr.hasContent = true
+				fallthrough
+			case atvr.hasContent && strings.TrimSpace(string(b[0:1])) != "":
+				if atvr.unvlio == nil {
+					atvr.unvlio, _ = goio.NewIORW()
+				}
 				atvr.unvlio.Print(b)
+			case atvr.hasContent:
+				atvr.hasContent = false
+				validPassiveConnent(atvr, lblbytes, lbli)
+				lbli[2] = 0
+			default:
+				atvr.unpio.Print(b[0:1])
+				if !atvr.foundcode {
+					if atvr.unpio.Size() >= 4096 {
+						atvr.pwio.Print(atvr.unpio)
+						atvr.unpio.Close()
+					}
+				} else {
+					if atvr.cntntstarti == -1 {
+						if atvr.cntntio == nil {
+							atvr.cntntstarti = 0
+						} else {
+							atvr.cntntstarti = atvr.cntntio.Size()
+						}
+					}
+				}
+				lbli[2] = 0
 			}
 		}
 	}
 }
 
-func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) (valid bool) {
+func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) {
+	var valid = false
+	if atvr.unvlio != nil && !atvr.unvlio.Empty() {
+		if valid = atvr.unvlio.HasPrefixExp(regexptagstart); valid {
+			fmt.Println(atvr.unvlio)
+		}
+	}
 	if valid {
 		if atvr.unvlio != nil && !atvr.unvlio.Empty() {
 			atvr.unvlio.Close()
@@ -464,4 +535,39 @@ func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) (val
 		}
 	}
 	return
+}
+
+const tagstartregexp string = `^((:(([a-z]|[A-Z])\w*)+)|(.:(([a-z]|[A-Z])\w*)+)|(([a-z]|[A-Z])+(:(([a-z]|[A-Z])\w*)+)+))+(:(([a-z]|[A-Z])\w*)+)*(-(([a-z]|[A-Z])\w*)+)?(.([a-z]|[A-Z])+)?$`
+
+var regexptagstart *regexp.Regexp
+
+//const fulltagstartregexp string = `^(([<]|[</])+((:(([a-z]|[A-Z])\w*)+)|(.:(([a-z]|[A-Z])\w*)+)|(([a-z]|[A-Z])+(:(([a-z]|[A-Z])\w*)+)+))+(:(([a-z]|[A-Z])\w*)+)+)*(-(([a-z]|[A-Z])\w*)+)?(.([a-z]|[A-Z])+)?([>]|[/>])+$`
+
+//var regexpfulltagstart *regexp.Regexp
+
+const propregexp string = `^-?-?(([a-z]+[0-9]*)[a-z]*)+(-([a-z]+[0-9]*)[a-z]*)?$`
+
+var regexprop *regexp.Regexp
+
+const propvalnumberexp string = `^[-+]?\d+([.]\d+)?$`
+
+var regexpropvalnumberexp *regexp.Regexp
+
+func init() {
+
+	if regexptagstart == nil {
+		regexptagstart = regexp.MustCompile(tagstartregexp)
+	}
+
+	//if regexpfulltagstart == nil {
+	//	regexpfulltagstart = regexp.MustCompile(fulltagstartregexp)
+	//}
+
+	if regexprop == nil {
+		regexprop = regexp.MustCompile(propregexp)
+	}
+
+	if regexpropvalnumberexp == nil {
+		regexpropvalnumberexp = regexp.MustCompile(propvalnumberexp)
+	}
 }
