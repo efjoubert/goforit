@@ -1,5 +1,9 @@
 package goreflect
 
+import (
+	"reflect"
+)
+
 type Struct struct {
 	tpe      reflect.Type
 	mthds    []*Method
@@ -9,7 +13,6 @@ type Struct struct {
 	fldsmap  map[string]*Field
 	fldnms   []string
 }
-
 
 func sTruct(a interface{}) (strct *Struct) {
 	strct = &Struct{tpe: reflect.TypeOf(a)}
