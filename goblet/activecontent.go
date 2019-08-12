@@ -551,6 +551,8 @@ func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) {
 		if atvr.unvlio != nil && !atvr.unvlio.Empty() {
 			atvr.unvlio.Close()
 		}
+		lbli[2] = 0
+		lbli[3] = 0
 	} else {
 		if lbli[2] > 0 {
 			atvr.unpio.Print(lblbytes[2][0:lbli[2]])
