@@ -27,7 +27,7 @@ func initDataAgentWidget() {
 		"/jquery.js", embed.JQueryJS,
 		"/blockui.js", embed.BlockuiJS,
 		"/webactions.js", func() io.Reader { return embed.WebactionsJS(true) },
-		"/goldenlayout/js/goldenlayoutlight.css", embed.GoldenlayoutCSS,
+		"/goldenlayout/css/goldenlayoutlight.css", func() io.Reader { return embed.GoldenlayoutCSS() },
 		"/goldenlayout/js/goldenlayout.js", embed.GoldenlayoutJS,
 		"/bootstrap/css/bootstrap.css", embed.BootstrapCSS,
 		"/bootstrap/js/bootstrap.js", embed.BootstrapJS,
