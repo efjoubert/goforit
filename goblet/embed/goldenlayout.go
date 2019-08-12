@@ -24,7 +24,7 @@ func GoldenlayoutJS() io.Reader {
 
 //GoldenLayoutCSS GoldenLayoutCSS - default "base"
 //theme - can aslo be "dark","light" or "translucent"
-func GoldenLayoutCSS(theme ...string) io.Reader {
+func GoldenlayoutCSS(theme ...string) io.Reader {
 	if len(theme) == 1 && theme[0] != "" {
 		switch theme[0] {
 		case "dark":
