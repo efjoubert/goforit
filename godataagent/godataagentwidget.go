@@ -26,7 +26,7 @@ func initDataAgentWidget() {
 		"/moment/moment-with-locals.js", embed.MomentLocalJS,
 		"/jquery.js", embed.JQueryJS,
 		"/blockui.js", embed.BlockuiJS,
-		"/webactions.js", func() io.Reader { return embed.WebactionsJS(true) },
+		"/webactions.js", func() io.Reader { return embed.WebactionsJS(false) },
 		"/goldenlayout/css/goldenlayoutlight.css", func() io.Reader { return embed.GoldenlayoutCSS() },
 		"/goldenlayout/js/goldenlayout.js", embed.GoldenlayoutJS,
 		"/bootstrap/css/bootstrap.css", embed.BootstrapCSS,
