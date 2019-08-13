@@ -439,7 +439,9 @@ func interpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 			if lbli[3] == len(lblbytes[3]) {
 				if atvr.hasContent {
 					atvr.hasContent = false
-					validPassiveConnent(atvr, lblbytes, lbli)
+					validPassiveConnent(atvr, lblbytes, lbli, true)
+				} else {
+					validPassiveConnent(atvr, lblbytes, lbli, false)
 				}
 				atvr.prvb[1] = 0
 			}
@@ -461,7 +463,7 @@ func interpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 						atvr.hasContent = false
 						fb = lblbytes[3][vlbn:lbli[3]]
 						vlbn = lbli[3]
-						validPassiveConnent(atvr, lblbytes, lbli)
+						validPassiveConnent(atvr, lblbytes, lbli, true)
 						atvr.unpio.Print(fb)
 						if !atvr.foundcode {
 							if atvr.unpio.Size() >= 4096 {
@@ -514,35 +516,33 @@ func interpratePassiveReaderByte(atvr *ActiveReader, wo io.Writer, b []byte, lbl
 				atvr.unvlio.Print(b)
 			case atvr.hasContent:
 				atvr.hasContent = false
-				validPassiveConnent(atvr, lblbytes, lbli)
-				fallthrough
+				validPassiveConnent(atvr, lblbytes, lbli, true)
+				atvr.unpio.Print(b)
 			default:
-				atvr.unpio.Print(b[0:1])
-				if !atvr.foundcode {
-					if atvr.unpio.Size() >= 4096 {
-						atvr.pwio.Print(atvr.unpio)
-						atvr.unpio.Close()
-					}
-				} else {
-					if atvr.cntntstarti == -1 {
-						if atvr.cntntio == nil {
-							atvr.cntntstarti = 0
-						} else {
-							atvr.cntntstarti = atvr.cntntio.Size()
-						}
-					}
+				validPassiveConnent(atvr, lblbytes, lbli, false)
+				atvr.unpio.Print(b)
+			}
+			if !atvr.foundcode {
+				if atvr.unpio.Size() >= 4096 {
+					atvr.pwio.Print(atvr.unpio)
+					atvr.unpio.Close()
 				}
-				if lbli[2] > 0 {
-					lbli[2] = 0
+			} else {
+				if atvr.cntntstarti == -1 {
+					if atvr.cntntio == nil {
+						atvr.cntntstarti = 0
+					} else {
+						atvr.cntntstarti = atvr.cntntio.Size()
+					}
 				}
 			}
 		}
 	}
 }
 
-func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int) {
+func validPassiveConnent(atvr *ActiveReader, lblbytes [][]byte, lbli []int, performTest bool) {
 	var valid = false
-	if atvr.unvlio != nil && !atvr.unvlio.Empty() {
+	if performTest && atvr.unvlio != nil && !atvr.unvlio.Empty() {
 		if valid = atvr.unvlio.HasPrefixExp(regexptagstart); valid {
 			fmt.Println(atvr.unvlio)
 		}
