@@ -217,13 +217,13 @@ function postForm(options){
 				var contenttype=(""+xhr.getResponseHeader("Content-Disposition")).trim();
 				if (contentdisposition.indexOf("attachment;")>-1) {
 					contentdisposition=contentdisposition.substr(contentdisposition.indexOf("attachment;")+"attachment;".length).trim();
+					if (contentdisposition.indexOf("filename=")>-1) {
+						contentdisposition=contentdisposition.substr(contentdisposition.indexOf("filename=")+"filename=".length).trim();
+						contentdisposition=contentdisposition.replace(/"/i,"")
+						contentdisposition=contentdisposition.replace(/"/i,"")
+					}
+					safeData(responseText,contentdisposition,contenttype);
 				}
-				if (contentdisposition.indexOf("filename=")>-1) {
-					contentdisposition=contentdisposition.substr(contentdisposition.indexOf("filename=")+"filename=".length).trim();
-					contentdisposition=contentdisposition.replace(/"/i,"")
-					contentdisposition=contentdisposition.replace(/"/i,"")
-				}
-				safeData(responseText,contentdisposition,contenttype);
 			}
         },
         error: function(jqXHR, textStatus, textThrow) {
