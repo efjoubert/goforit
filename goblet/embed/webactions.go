@@ -171,60 +171,46 @@ function postForm(options){
         data: formData,
         url: urlref,
         success: function (response,textStatus,jqXHR) {
-			if(jqXHR.getResponseHeader("Content-Disposition")==null){
-				if(progressElem!=undefined){
-							if (progressElem=="#showprogress") {
-										$.unblockUI();
-							} else {
-								$(progressElem).hide();
-							}
-				}
-				var parsed=parseActiveString("script||","||script",response);
-				var parsedScript=parsed[1].join("");
-				response=parsed[0].trim();
-				var targets=[];
-				var targetSections=[];
-				if(response!=""){
-					if(response.indexOf("replace-content||")>-1){
-						parsed=parseActiveString("replace-content||","||replace-content",response);
-						response=parsed[0];
-						parsed[1].forEach(function(possibleTargetContent,i){
-							if(possibleTargetContent.indexOf("||")>-1){
-								targets[targets.length]=[possibleTargetContent.substring(0,possibleTargetContent.indexOf("||")),possibleTargetContent.substring(possibleTargetContent.indexOf("||")+"||".length,possibleTargetContent.length)];
-							}        				
-						});
-					}
-					targets.unshift([target,response]);
-				}
-				if(targets.length>0){
-					targets.forEach(function(targetSec){
-						if ($(targetSec[0]).length>0) {
-									if (targetSec[0].startsWith("#")) {
-										$(targetSec[0]).html(targetSec[1]);
-									} else {
-										$(targetSec[0]).each(function(i){
-											$(this).html(targetSec[1])
-										});
-									}
+        	if(progressElem!=undefined){
+						if (progressElem=="#showprogress") {
+									$.unblockUI();
+						} else {
+							$(progressElem).hide();
 						}
-					});
-				}
-				if(parsedScript!=""){
-					eval(parsedScript);
-				}
-			} else {
-				var contentdisposition=(""+xhr.getResponseHeader("Content-Disposition")).trim();
-				var contenttype=(""+xhr.getResponseHeader("Content-Disposition")).trim();
-				if (contentdisposition.indexOf("attachment;")>-1) {
-					contentdisposition=contentdisposition.substr(contentdisposition.indexOf("attachment;")+"attachment;".length).trim();
-					if (contentdisposition.indexOf("filename=")>-1) {
-						contentdisposition=contentdisposition.substr(contentdisposition.indexOf("filename=")+"filename=".length).trim();
-						contentdisposition=contentdisposition.replace(/"/i,"")
-						contentdisposition=contentdisposition.replace(/"/i,"")
-					}
-					safeData(responseText,contentdisposition,contenttype);
-				}
-			}
+        	}
+        	var parsed=parseActiveString("script||","||script",response);
+        	var parsedScript=parsed[1].join("");
+        	response=parsed[0].trim();
+        	var targets=[];
+        	var targetSections=[];
+        	if(response!=""){
+        		if(response.indexOf("replace-content||")>-1){
+        			parsed=parseActiveString("replace-content||","||replace-content",response);
+        			response=parsed[0];
+        			parsed[1].forEach(function(possibleTargetContent,i){
+        				if(possibleTargetContent.indexOf("||")>-1){
+        					targets[targets.length]=[possibleTargetContent.substring(0,possibleTargetContent.indexOf("||")),possibleTargetContent.substring(possibleTargetContent.indexOf("||")+"||".length,possibleTargetContent.length)];
+        				}        				
+        			});
+        		}
+        		targets.unshift([target,response]);
+        	}
+        	if(targets.length>0){
+        		targets.forEach(function(targetSec){
+        			if ($(targetSec[0]).length>0) {
+								if (targetSec[0].startsWith("#")) {
+									$(targetSec[0]).html(targetSec[1]);
+								} else {
+									$(targetSec[0]).each(function(i){
+										$(this).html(targetSec[1])
+									});
+								}
+        			}
+        		});
+        	}
+        	if(parsedScript!=""){
+        		eval(parsedScript);
+        	}
         },
         error: function(jqXHR, textStatus, textThrow) {
         	if(progressElem!=undefined){
@@ -246,13 +232,12 @@ function safeData(data, fileName,contentType) {
     document.body.appendChild(a);
     a.style = "display: none";
    
-            blob = new Blob([data], {type: contentType}),
-            url = window.URL.createObjectURL(blob);
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        window.URL.revokeObjectURL(url);
-    
+		blob = new Blob([data], {type: contentType}),
+		url = window.URL.createObjectURL(blob);
+	a.href = url;
+	a.download = fileName;
+	a.click();
+	window.URL.revokeObjectURL(url);    
 }
 
 function parseActiveString(labelStart,labelEnd,passiveString){
